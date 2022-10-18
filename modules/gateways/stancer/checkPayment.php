@@ -52,17 +52,7 @@ if (count($payments) !== 1) {
 
 $payment = $payments[0];
 
-switch ($payment->status) {
-    case 'captured':
-        $transactionStatus = 'Success';
-        break;
-    case 'to_capture':
-        $transactionStatus = 'Pending';
-        break;
-    default:
-        $transactionStatus = 'Failure';
-        break;
-}
+$transactionStatus = $payment->response == 00 ? 'Success' : 'Failure';
 
 //Check hash & unique_id
 if (
@@ -118,44 +108,28 @@ checkCbTransID($payment->id);
  */
 logTransaction('stancer', ['unique_id' => $unique_id, 'payment_id' => $payment->id], $transactionStatus);
 
-if (!$testMode) {
-    if ($transactionStatus === 'Success') {
-        /**
-         * Add Invoice Payment.
-         *
-         * Applies a payment transaction entry to the given invoice ID.
-         *
-         * @param int $invoiceId         Invoice ID
-         * @param string $transactionId  Transaction ID
-         * @param float $paymentAmount   Amount paid (defaults to full balance)
-         * @param float $paymentFee      Payment fee (optional)
-         * @param string $gatewayModule  Gateway module name
-         */
-        addInvoicePayment(
-            $invoiceId,
-            $payment->id,
-            ($payment->amout / 100),
-            ($payment->fee / 100),
-            'stancer'
-        );
-    } elseif ($transactionStatus === 'Pending') {
-        localAPI('UpdateInvoice', [
-            'invoiceid' => $invoiceId,
-            'status' => 'Payment Pending'
-        ]);
-    }
+
+if (!$testMode && $transactionStatus === 'Success') {
+    /**
+     * Add Invoice Payment.
+     *
+     * Applies a payment transaction entry to the given invoice ID.
+     *
+     * @param int $invoiceId         Invoice ID
+     * @param string $transactionId  Transaction ID
+     * @param float $paymentAmount   Amount paid (defaults to full balance)
+     * @param float $paymentFee      Payment fee (optional)
+     * @param string $gatewayModule  Gateway module name
+     */
+    addInvoicePayment(
+        $invoiceId,
+        $payment->id,
+        ($payment->amout / 100),
+        ($payment->fee / 100),
+        'stancer'
+    );
 }
 
-switch ($transactionStatus) {
-    case 'Success':
-        $redirectionMessage = 'paymentsuccess';
-        break;
-    case 'Pending':
-        $redirectionMessage = 'paymentinititated';
-        break;
-    default:
-        $redirectionMessage = 'paymentfailed';
-        break;
-}
+$redirectionMessage = $transactionStatus === 'Success' ? 'paymentsuccess' : 'paymentfailed';
 
 header('location: ' . $gatewayParams['systemurl'] . 'viewinvoice.php?id=' . $invoiceId . '&' . $redirectionMessage . '=true');

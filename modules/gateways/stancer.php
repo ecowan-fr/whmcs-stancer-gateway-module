@@ -157,7 +157,7 @@ function stancer_link($params) {
         $postfields['email'] = $params['clientdetails']['email'];
         $postfields['customer'] = $params['clientdetails']['firstname'] . ' ' . $params['clientdetails']['lastname'];
 
-        $htmlOutput = '<form method="post" action="' . $gatewayParams['systemurl'] . '/modules/gateways/stancer/processPayment.php">';
+        $htmlOutput = '<form method="post" action="' . $params['systemurl'] . '/modules/gateways/stancer/processPayment.php">';
         $htmlOutput .= '<input class="btn btn-success btn-sm" type="submit" value="' . $params['langpaynow'] . '" />';
         foreach ($postfields as $k => $v) {
             $htmlOutput .= '<input type="hidden" name="' . $k . '" value="' . urlencode($v) . '" />';
