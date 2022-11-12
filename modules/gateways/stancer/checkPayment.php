@@ -52,7 +52,7 @@ if (count($payments) !== 1) {
 
 $payment = $payments[0];
 
-$transactionStatus = $payment->response === 0 ? 'Success' : 'Failure';
+$transactionStatus = $payment->response === "00" ? 'Failure' : 'Success';
 
 //Check hash & unique_id
 if (
